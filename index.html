@@ -71,8 +71,9 @@ let W=180,H=320,scale=1,portrait=true;
 function fit(){
   const vw=document.body.clientWidth, vh=document.body.clientHeight;
   portrait = vh>=vw*1.05;
-  W = portrait?180:320; H = portrait?320:200;
-  scale=Math.max(1,Math.floor(Math.min(vw/W,vh/H)));
+  scale = Math.max(1, Math.floor(portrait ? vw/180 : vh/200));
+  if(portrait){ W=Math.floor(vw/scale); H=Math.min(Math.floor(vh/scale), Math.round(W*2.0)); }
+  else { H=Math.floor(vh/scale); W=Math.min(Math.floor(vw/scale), Math.round(H*1.9)); }
   cv.width=W; cv.height=H; cv.style.width=W*scale+'px'; cv.style.height=H*scale+'px';
   DPR=Math.min(2,devicePixelRatio||1); tv.width=W*scale*DPR; tv.height=H*scale*DPR; tv.style.width=W*scale+'px'; tv.style.height=H*scale+'px';
   ctx.imageSmoothingEnabled=false;
@@ -148,10 +149,10 @@ function layoutBricks(keep){
   bricks=[];
   rows.forEach((row,r)=>{ for(let c=0;c<cols;c++){ const k=row[c]; if(!k||k===' '||!KIND[k]) continue;
     bricks.push({c,r,x:x0+c*(bw+gx),y:y0+r*(bh+1),w:bw,h:bh,k,hp:KIND[k].hp,maxhp:KIND[k].hp,pts:KIND[k].pts,hit:0}); }});
-  paddle.w=portrait?26:30;
+  paddle.w=Math.round(portrait?W*0.145:W*0.095);
 }
 function resetPaddle(){ paddle.x=W/2-paddle.w/2; paddle.y=H-(portrait?30:20); paddle.sticky=false; paddle.laser=false; paddle.wideT=0; paddle.laserT=0; paddle.stickyT=0; }
-function newBall(stuck){ const sp=portrait?1.95:2.05; balls=[{x:paddle.x+paddle.w/2,y:paddle.y-3,vx:0,vy:0,r:1.5,stuck:true,off:0,speed:sp+level*0.08,trail:[]}]; if(!stuck) launch(balls[0]); }
+function newBall(stuck){ const sp=(portrait?1.95:2.05)*Math.max(0.9,Math.min(1.5,(portrait?H/320:W/320))); balls=[{x:paddle.x+paddle.w/2,y:paddle.y-3,vx:0,vy:0,r:1.5,stuck:true,off:0,speed:sp+level*0.08,trail:[]}]; if(!stuck) launch(balls[0]); }
 function launch(b){ if(!b.stuck) return; b.stuck=false; const a=-Math.PI/2+(Math.random()*0.8-0.4); b.vx=Math.cos(a)*b.speed; b.vy=Math.sin(a)*b.speed; }
 function startGame(){ level=0; score=0; lives=3; combo=0; startLevel(); state='play'; }
 function startLevel(){ drops=[]; lasers=[]; parts=[]; layoutBricks(false); resetPaddle(); newBall(true); levelFlashT=1200; }
@@ -206,11 +207,11 @@ let fireCd=0; function fire(){ if(!paddle.laser||fireCd>0) return; fireCd=260; l
 
 /* ---------- update ---------- */
 function update(dt,t){
-  const p=paddle, sp=portrait?0.14:0.18;
+  const p=paddle, sp=W*0.00055;
   if(pointerX!==null) p.x += (pointerX-p.w/2-p.x)*Math.min(1,dt*0.02);
   if(keys.ArrowLeft||keys.a) p.x-=sp*dt; if(keys.ArrowRight||keys.d) p.x+=sp*dt;
   p.x=Math.max(2,Math.min(W-2-p.w,p.x));
-  if(p.wideT>0&&(p.wideT-=dt)<=0){ p.w=portrait?26:30; p.x=Math.min(p.x,W-2-p.w); }
+  if(p.wideT>0&&(p.wideT-=dt)<=0){ p.w=Math.round(portrait?W*0.145:W*0.095); p.x=Math.min(p.x,W-2-p.w); }
   if(p.laserT>0&&(p.laserT-=dt)<=0) p.laser=false;
   if(p.stickyT>0&&(p.stickyT-=dt)<=0) p.sticky=false;
   fireCd=Math.max(0,fireCd-dt); if(keys[' ']&&p.laser) fire();
@@ -259,7 +260,7 @@ function hitBrick(br,x,y){
 }
 function powerup(k){
   const p=paddle; score+=25;
-  if(k==='E'){ p.w=portrait?40:46; p.x=Math.min(p.x,W-2-p.w); p.wideT=12000; msg('BREED',p.x+p.w/2,p.y-8); }
+  if(k==='E'){ p.w=Math.round(portrait?W*0.22:W*0.145); p.x=Math.min(p.x,W-2-p.w); p.wideT=12000; msg('BREED',p.x+p.w/2,p.y-8); }
   if(k==='M'){ const src=balls[0]||{x:p.x+p.w/2,y:p.y-3,speed:1.95}; for(let i=0;i<2;i++){ const a=-Math.PI/2+(i?0.6:-0.6); balls.push({x:src.x,y:src.y,vx:Math.cos(a)*src.speed,vy:Math.sin(a)*src.speed,r:1.5,stuck:false,off:0,speed:src.speed,trail:[]}); } msg('MULTI',p.x+p.w/2,p.y-8); }
   if(k==='L'){ p.laser=true; p.laserT=10000; msg('LASER',p.x+p.w/2,p.y-8); }
   if(k==='K'){ p.sticky=true; p.stickyT=12000; msg('KLEEF',p.x+p.w/2,p.y-8); }
