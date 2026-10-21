@@ -58,7 +58,7 @@ function pixText(g2,s,x,y,sc,col,align){
   return w;
 }
 function text(s,x,y,sc,col,align,glow){
-  const k=scale*DPR, px = sc>=3?20:sc>=2?13:7;
+  const k=scale*DPR, px = sc>=4?30:sc>=3?20:sc>=2?13:7;
   tctx.font = (sc>=2?'400 ':'700 ')+(px*k)+'px '+(sc>=2?'Anton':'"Barlow Semi Condensed"')+', Impact, "Arial Narrow", sans-serif';
   tctx.textAlign = align==='c'?'center':align==='r'?'right':'left'; tctx.textBaseline='top';
   if(sc<2) { s=String(s).toUpperCase(); }
@@ -113,10 +113,10 @@ function drawSky(t){
   ctx.drawImage(sky,0,0);
   ctx.fillStyle=P.star; for(const st of stars){ if(Math.sin(t*0.002+st.t)>0.2) ctx.fillRect(st.x,st.y,1,1); }
   for(const sg of signs){
-    if(sg.big){ if(state==='title') continue; const on=Math.sin(t*0.0015)>-0.95; pixText(ctx,'VWAB',sg.x+1,sg.y+1,sg.big,P.navy,'c'); pixText(ctx,'VWAB',sg.x,sg.y,sg.big,on?P.b2:P.b1,'c'); pixText(ctx,'VROEGER WAS ALLES BETER',sg.x,sg.y+sg.big*6+2,1,P.b1,'c'); continue; }
-    const on = Math.sin(t*0.003+sg.t)>-0.6; const col = sg.side ? (on?P.yel:'#5a4a00') : (on?P.b5:P.b2);
+    if(sg.big){ if(state==='title') continue; const on=Math.sin(t*0.0015)>-0.95; text('VWAB',sg.x,sg.y-8,4,on?P.b2:P.b1,'c'); text('Vroeger was alles beter',sg.x,sg.y+sg.big*6+8,1,P.b2,'c'); continue; }
+    const on = Math.sin(t*0.003+sg.t)>-0.6; const col = sg.side ? (on?P.yel:'#7a6400') : (on?P.b5:P.b2);
     if(sg.side){ ctx.fillStyle=P.dark; ctx.fillRect(sg.x-1,sg.y-1,21,7); }
-    pixText(ctx,sg.kind,sg.x,sg.y,1,col,'l');
+    text(sg.kind,sg.x+(sg.side?10:8),sg.y,1,col,'c');
   }
   for(const w of windows){ const on = w.on ? Math.sin(t*0.0007+w.t)>-0.9 : Math.sin(t*0.0011+w.t)>0.85; ctx.fillStyle=on?P.b4:P.b1; ctx.fillRect(w.x,w.y,2,3); if(on){ctx.fillStyle=P.b5;ctx.fillRect(w.x,w.y,1,1);} }
 }
@@ -150,8 +150,8 @@ function layoutBricks(keep){
     bricks.push({c,r,x:x0+c*(bw+gx),y:y0+r*(bh+1),w:bw,h:bh,k,hp:KIND[k].hp,maxhp:KIND[k].hp,pts:KIND[k].pts,hit:0}); }});
   paddle.w=portrait?26:30;
 }
-function resetPaddle(){ paddle.x=W/2-paddle.w/2; paddle.y=H-(portrait?14:10); paddle.sticky=false; paddle.laser=false; paddle.wideT=0; paddle.laserT=0; paddle.stickyT=0; }
-function newBall(stuck){ const sp=portrait?1.5:1.6; balls=[{x:paddle.x+paddle.w/2,y:paddle.y-3,vx:0,vy:0,r:1.5,stuck:true,off:0,speed:sp+level*0.08,trail:[]}]; if(!stuck) launch(balls[0]); }
+function resetPaddle(){ paddle.x=W/2-paddle.w/2; paddle.y=H-(portrait?30:20); paddle.sticky=false; paddle.laser=false; paddle.wideT=0; paddle.laserT=0; paddle.stickyT=0; }
+function newBall(stuck){ const sp=portrait?1.95:2.05; balls=[{x:paddle.x+paddle.w/2,y:paddle.y-3,vx:0,vy:0,r:1.5,stuck:true,off:0,speed:sp+level*0.08,trail:[]}]; if(!stuck) launch(balls[0]); }
 function launch(b){ if(!b.stuck) return; b.stuck=false; const a=-Math.PI/2+(Math.random()*0.8-0.4); b.vx=Math.cos(a)*b.speed; b.vy=Math.sin(a)*b.speed; }
 function startGame(){ level=0; score=0; lives=3; combo=0; startLevel(); state='play'; }
 function startLevel(){ drops=[]; lasers=[]; parts=[]; layoutBricks(false); resetPaddle(); newBall(true); levelFlashT=1200; }
@@ -260,7 +260,7 @@ function hitBrick(br,x,y){
 function powerup(k){
   const p=paddle; score+=25;
   if(k==='E'){ p.w=portrait?40:46; p.x=Math.min(p.x,W-2-p.w); p.wideT=12000; msg('BREED',p.x+p.w/2,p.y-8); }
-  if(k==='M'){ const src=balls[0]||{x:p.x+p.w/2,y:p.y-3,speed:1.5}; for(let i=0;i<2;i++){ const a=-Math.PI/2+(i?0.6:-0.6); balls.push({x:src.x,y:src.y,vx:Math.cos(a)*src.speed,vy:Math.sin(a)*src.speed,r:1.5,stuck:false,off:0,speed:src.speed,trail:[]}); } msg('MULTI',p.x+p.w/2,p.y-8); }
+  if(k==='M'){ const src=balls[0]||{x:p.x+p.w/2,y:p.y-3,speed:1.95}; for(let i=0;i<2;i++){ const a=-Math.PI/2+(i?0.6:-0.6); balls.push({x:src.x,y:src.y,vx:Math.cos(a)*src.speed,vy:Math.sin(a)*src.speed,r:1.5,stuck:false,off:0,speed:src.speed,trail:[]}); } msg('MULTI',p.x+p.w/2,p.y-8); }
   if(k==='L'){ p.laser=true; p.laserT=10000; msg('LASER',p.x+p.w/2,p.y-8); }
   if(k==='K'){ p.sticky=true; p.stickyT=12000; msg('KLEEF',p.x+p.w/2,p.y-8); }
   if(k==='+'){ lives++; msg('LEVEN+',p.x+p.w/2,p.y-8); }
