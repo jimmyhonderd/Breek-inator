@@ -1,0 +1,17 @@
+{
+  "name": "Breek-inator",
+  "short_name": "Breek-inator",
+  "description": "Breakout in VWAB pixel-art met een LEDJOCKEY-tintje.",
+  "start_url": "./index.html",
+  "scope": "./",
+  "display": "fullscreen",
+  "orientation": "any",
+  "background_color": "#02041a",
+  "theme_color": "#050a2a",
+  "lang": "nl",
+  "icons": [
+    {"src": "icons/icon-192.png", "sizes": "192x192", "type": "image/png"},
+    {"src": "icons/icon-512.png", "sizes": "512x512", "type": "image/png"},
+    {"src": "icons/maskable-512.png", "sizes": "512x512", "type": "image/png", "purpose": "maskable"}
+  ]
+}
